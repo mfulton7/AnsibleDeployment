@@ -1,8 +1,13 @@
-# Final Project
+# CS43202 Final Project
 
 This is the base repository for the final project for CS43202.
 
 ## Contents of this Repository
+
+* INSTALL.md
+
+    * File to be filled out by student detailing how to use their selected
+      automation tool in order to deploy application for final project.
 
 * requirements.txt
 

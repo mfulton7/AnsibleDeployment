@@ -1,0 +1,8 @@
+Fabric==1.12.0
+fabtools==0.20.0
+ansible>=2.1.0,<2.2.0
+Jinja2==2.8
+paramiko==1.17.2
+ipython>=5.1.0
+requests==2.12.1
+git+https://sysadmin1.cs.kent.edu/dostanle/cs43202api.git#egg=cs43202api

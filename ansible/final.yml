@@ -1,0 +1,5 @@
+---
+- hosts: all
+  tasks:
+    - name: Upgrade base software
+      yum: name=* state=latest
