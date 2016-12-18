@@ -1,5 +1,139 @@
 ---
 - hosts: all
+  remote_user: test
+  vars:
+    USER: deployable
   tasks:
-    - name: Upgrade base software
-      yum: name=* state=latest
+    #- name: Upgrade base software
+      #yum: name=* state=latest
+
+    - name: install nginx
+      yum: name=nginx state=latest
+    - name: install python
+      yum: name=python state=latest
+    - name: install python virtual env 
+      yum: name=python-virtualenv state=latest
+    - name: install pip
+      yum: name=python-pip state=latest
+    - name: install setuptools
+      yum: name=python-setuptools state=latest
+    - name: install sqlite
+      yum: name=sqlite state=latest
+
+
+    # enable restricted shell
+    #- shell: ln -s /bin/bash /bin/rbash
+    - name: symbolic link for rshell
+      file:
+        src: /bin/bash
+        dest: /bin/rbash
+        state: link
+
+    # create a suer named deployable and give them the rbash
+    # - shell: useradd -r -s /bin/rbash -M -U deployable
+    - name: add user
+      user:
+        shell: /bin/rbash
+        name: "{{USER}}"
+
+    # create srv directory
+    # - shell: mkdir /srv
+    - name: create srv
+      file:
+        state: directory
+        path: /srv
+
+    # create directory to install application in
+    # - shell: mkdir -p srv/deployable
+    - name: create deployable install dire
+      file:
+        state: directory
+        owner: "{{USER}}"
+        path: /srv/deployable
+
+    # shell: cp -R app /srv/deployable
+    #- name: copy appliction
+    #  copy:
+    #   src: ../deployable/app
+    #   dest: /srv/deployable
+
+    - name: clone application
+      git:
+        repo: https://sysadmin1.cs.kent.edu/CS43202/deployable.git
+        dest: /srv/deployable
+        clone: yes
+        update: yes    
+    
+    # initialize database
+    - name: run file on .db
+      file:
+        path: /srv/deployable/app/quotes.db
+        state: absent
+
+
+
+    - shell: sqlite3 /srv/deployable/app/quotes.db < /srv/deployable/fixtures/quotes.sql
+    #- shell: ls -l /srv/deployable/app/quotes.db
+    
+    # setup python environment
+    #- shell: virtualenv /srv/deplyable/env
+    #- shell: /srv/deployable/env/bin/pip install --upgrade pip
+    #- name: install python stuff
+    #- name: install pytho
+    #- yum: nam=python-pip state=latest
+    #- yum: name=python-setuptools state=latest
+    - name: install pip requirements
+      pip:
+        virtualenv: /srv/deployable/env
+        requirements: /srv/deployable/requirements.txt
+    #- shell: /srv/deployable/env/bin/pip install --upgrade setuptools
+    #- shell: /srv/deployable/env/bin/pip install --upgrade -r requirements.txt
+    # end python stuff
+
+    # run application at boot
+    #- shell: cp examples/deployable.servcie /usr/lib/systemd/system/deployable.service
+    #- shell: systemctl enable deployable.service
+    #- shell: systemctl start deployable.service
+    # end boot
+    #
+    - name: copy deployable service to systemd
+      copy:
+        src: /srv/deployable/examples/deployable.service
+        dest: /usr/lib/systemd/system/deployable.service
+        remote_src: true
+        
+
+
+    - name: setup deployable service
+      service:
+        name: deployable
+        enabled: yes
+      service:
+        name: deployable
+        state: started
+
+    # configure ngionx
+    #- shell: systemctl enable nginx.service
+    #- shell: systemctl start nginx.service
+    #- shell: cp examples/nginx.conf /etc/nginx.conf
+    - name: setup nginx
+      service:
+        name: nginx
+        enabled: yes
+      service:
+        name: nginx
+        state: started
+    - name: configure nginx
+      copy:
+        src: /srv/deployable/examples/nginx.conf
+        dest: /etc/nginx/nginx.conf
+        remote_src: true
+    - name: reload nginx
+      service:
+        name: nginx
+        state: reloaded
+
+    
+
+    # test the install
+    #- shell: curl -s http://localhost
