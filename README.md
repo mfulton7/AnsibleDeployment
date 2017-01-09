@@ -1,3 +1,9 @@
+This was the final project for my systems administration course. 
+
+
+
+
+
 # CS43202 Final Project
 
 This is the base repository for the final project for CS43202.
